@@ -1,16 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-
-// In-memory message storage (in production, use a database)
-interface StoredMessage {
-  id: string;
-  encrypted: string;
-  iv: string;
-  timestamp: number;
-  senderId: string;
-}
-
-const messages: Map<string, StoredMessage[]> = new Map();
-const userSessions: Map<string, { publicKey: string; lastSeen: number }> = new Map();
+import { broadcastMessage, getMessages } from "@/lib/storage";
 
 // Generate a simple user ID
 function getUserId(request: NextRequest): string {
@@ -32,7 +21,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const message: StoredMessage = {
+    const message = {
       id: `${Date.now()}-${Math.random()}`,
       encrypted,
       iv,
@@ -40,21 +29,8 @@ export async function POST(request: NextRequest) {
       senderId: userId,
     };
 
-    // Initialize storage for sender
-    if (!messages.has(userId)) {
-      messages.set(userId, []);
-    }
-
-    // Store message for all other users
-    // First, ensure all existing users have message queues
-    messages.forEach((userMessages, otherUserId) => {
-      if (otherUserId !== userId) {
-        userMessages.push(message);
-      }
-    });
-
-    // If there are no other users yet, the message will be delivered when they connect
-    // (This handles the case where a user sends a message before the other user has polled)
+    // Broadcast message to all other users
+    await broadcastMessage(userId, message);
 
     return NextResponse.json({ success: true, messageId: message.id });
   } catch (error) {
@@ -70,10 +46,7 @@ export async function POST(request: NextRequest) {
 export async function GET(request: NextRequest) {
   try {
     const userId = getUserId(request);
-    const userMessages = messages.get(userId) || [];
-
-    // Clear messages after retrieval (they've been delivered)
-    messages.set(userId, []);
+    const userMessages = await getMessages(userId);
 
     return NextResponse.json({ messages: userMessages });
   } catch (error) {

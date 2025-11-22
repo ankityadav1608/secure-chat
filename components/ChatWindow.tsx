@@ -80,10 +80,16 @@ export default function ChatWindow() {
             body: JSON.stringify({ publicKey: publicKeyStr }),
           });
           if (!response.ok) {
-            console.error("Failed to register key:", response.statusText);
+            const errorData = await response.json().catch(() => ({}));
+            console.error("Failed to register key:", response.statusText, errorData);
+            setStatus("Failed to register with server. Please refresh.");
+          } else {
+            const result = await response.json();
+            console.log("[Client] Public key registered:", { userId: result.userId || userId });
           }
         } catch (error) {
           console.error("Failed to register key:", error);
+          setStatus("Failed to connect to server. Please check your connection.");
         }
 
         setStatus("Ready - Share your public key or wait for connection...");
@@ -100,14 +106,29 @@ export default function ChatWindow() {
   useEffect(() => {
     if (!myPublicKey || !myKeyPair) return;
 
+    let pollCount = 0;
     const pollForKeys = async () => {
       try {
+        pollCount++;
         const response = await fetch("/api/keys", {
           headers: {
             "x-user-id": userId,
           },
         });
+        
+        if (!response.ok) {
+          console.error("Failed to fetch keys:", response.status, response.statusText);
+          return;
+        }
+
         const data = await response.json();
+        console.log("[Client] Keys poll response:", { 
+          pollCount, 
+          hasEncryptedAESKey: !!data.encryptedAESKey, 
+          otherKeysCount: data.keys?.length || 0,
+          hasAESKey: !!aesKey,
+          hasOtherPublicKey: !!otherPublicKey
+        });
 
         // Check for encrypted AES key first
         if (data.encryptedAESKey && !aesKey && myKeyPair) {
@@ -123,6 +144,7 @@ export default function ChatWindow() {
             // to avoid issues with messages from previous sessions
             processedMessageIdsRef.current.clear();
             setStatus("Secure connection established - You can now send messages");
+            console.log("[Client] AES key decrypted successfully");
           } catch (error) {
             console.error("Failed to decrypt AES key:", error);
             setStatus("Failed to decrypt shared key");
@@ -132,11 +154,15 @@ export default function ChatWindow() {
         // Check for other users' public keys
         if (data.keys && data.keys.length > 0 && !otherPublicKey) {
           const otherKeyData = data.keys[0];
+          console.log("[Client] Found other user's public key:", { userId: otherKeyData.userId });
           // Only process if we don't already have a connection
           if (!aesKey) {
             setOtherUserId(otherKeyData.userId);
             await handleReceivePublicKey(otherKeyData.publicKey, otherKeyData.userId);
           }
+        } else if (!otherPublicKey && pollCount > 5) {
+          // After 5 polls (10 seconds), show helpful message
+          setStatus("Waiting for another user... Share your public key or wait for connection");
         }
       } catch (error) {
         console.error("Error polling for keys:", error);

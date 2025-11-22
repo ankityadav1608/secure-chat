@@ -127,13 +127,27 @@ For a production-ready deployment, consider:
 
 ## Environment Variables
 
-Currently, no environment variables are required. For production, you might want to add:
+**Optional (for production with Redis):**
 
 ```env
-NODE_ENV=production
-PORT=3000
-# Add database connection strings if you implement persistence
+UPSTASH_REDIS_REST_URL=your_redis_url
+UPSTASH_REDIS_REST_TOKEN=your_redis_token
 ```
+
+**Why Redis?**
+- In serverless environments (Vercel, Netlify), in-memory storage doesn't persist
+- Redis provides shared storage across all serverless function invocations
+- Free tier available at [upstash.com](https://upstash.com) (10,000 commands/day)
+
+**Without Redis:**
+- App works for single server instances
+- Data lost on server restart
+- May not work with load balancing
+
+**With Redis:**
+- Works in all serverless environments
+- Data persists across restarts
+- Works with multiple instances
 
 ## Security Considerations
 
