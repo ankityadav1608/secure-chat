@@ -1,36 +1,73 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Secure Chat - End-to-End Encrypted Messaging
+
+A secure, peer-to-peer chat application with end-to-end encryption. Share your public key with anyone to establish a secure connection and chat privately.
+
+## Features
+
+- 🔐 **End-to-End Encryption**: Messages are encrypted with RSA-2048 and AES-256
+- 🔑 **Shareable Public Keys**: Share your key via QR code, link, or copy/paste
+- 🚀 **Easy Key Exchange**: Connect with anyone by sharing public keys
+- 💬 **Real-time Messaging**: Secure messaging with encrypted communication
+- 🎨 **Modern UI**: Beautiful, responsive interface with dark mode support
 
 ## Getting Started
 
-First, run the development server:
+### Development
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
+# Install dependencies
+pnpm install
+
+# Run development server
 pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### How It Works
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+1. **Generate Keys**: Each user generates an RSA key pair automatically
+2. **Share Public Key**: Share your public key via QR code, link, or copy/paste
+3. **Connect**: The other user inputs your public key (or opens your shareable link)
+4. **Establish Connection**: AES key is exchanged securely using RSA encryption
+5. **Chat Securely**: All messages are encrypted with AES-256 before sending
+
+## Deployment
+
+Yes, you can deploy this and chat with anyone! See [DEPLOYMENT.md](./DEPLOYMENT.md) for detailed deployment instructions.
+
+### Quick Deploy to Vercel
+
+1. Push your code to GitHub
+2. Go to [vercel.com](https://vercel.com) and import your repository
+3. Deploy - that's it!
+
+Your app will be live and you can share the URL with anyone to chat securely.
+
+## Security
+
+- **RSA-2048**: For key exchange and AES key encryption
+- **AES-256-GCM**: For message encryption
+- **Client-Side Encryption**: Keys never leave the client (except public keys)
+- **No Server Access**: The server cannot read your messages
+
+## Current Limitations
+
+⚠️ **In-Memory Storage**: 
+- Data is lost on server restart
+- Works best with a single server instance
+- For production, consider adding a database (see DEPLOYMENT.md)
+
+## Technology Stack
+
+- **Next.js 16**: React framework
+- **TypeScript**: Type safety
+- **Tailwind CSS**: Styling
+- **Web Crypto API**: Encryption
+- **React QR Code**: QR code generation
 
 ## Learn More
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- [Next.js Documentation](https://nextjs.org/docs)
+- [Web Crypto API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Crypto_API)
+- [End-to-End Encryption](https://en.wikipedia.org/wiki/End-to-end_encryption)
