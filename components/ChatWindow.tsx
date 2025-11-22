@@ -250,7 +250,7 @@ export default function ChatWindow() {
       const otherKey = await importPublicKey(publicKeyStr);
       setOtherPublicKey(publicKeyStr);
       
-      let actualTargetUserId = targetUserId;
+      let actualTargetUserId: string | undefined = targetUserId;
 
       // If no targetUserId provided (manual input), try to find the user on the server
       if (!actualTargetUserId) {
@@ -261,9 +261,8 @@ export default function ChatWindow() {
             },
           });
           const lookupData = await lookupResponse.json();
-          if (lookupData.found) {
+          if (lookupData.found && lookupData.userId) {
             actualTargetUserId = lookupData.userId;
-            setOtherUserId(actualTargetUserId);
           } else {
             setStatus("User not found on server. They need to be connected first.");
             return;
@@ -273,7 +272,10 @@ export default function ChatWindow() {
           setStatus("Failed to find user on server");
           return;
         }
-      } else {
+      }
+
+      // Set the other user ID if we have it
+      if (actualTargetUserId) {
         setOtherUserId(actualTargetUserId);
       }
 
