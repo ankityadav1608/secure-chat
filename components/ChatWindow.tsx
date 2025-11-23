@@ -81,15 +81,17 @@ export default function ChatWindow() {
           });
           if (!response.ok) {
             const errorData = await response.json().catch(() => ({}));
-            console.error("Failed to register key:", response.statusText, errorData);
-            setStatus("Failed to register with server. Please refresh.");
+            console.error("Failed to register key:", response.status, response.statusText, errorData);
+            const errorMsg = errorData.error || response.statusText || "Unknown error";
+            setStatus(`Failed to register: ${errorMsg}. Please refresh the page.`);
           } else {
             const result = await response.json();
             console.log("[Client] Public key registered:", { userId: result.userId || userId });
           }
         } catch (error) {
           console.error("Failed to register key:", error);
-          setStatus("Failed to connect to server. Please check your connection.");
+          const errorMessage = error instanceof Error ? error.message : "Network error";
+          setStatus(`Connection failed: ${errorMessage}. Please check your internet connection and try again.`);
         }
 
         setStatus("Ready - Share your public key or wait for connection...");
